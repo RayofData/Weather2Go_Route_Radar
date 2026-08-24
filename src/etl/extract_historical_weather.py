@@ -7,12 +7,20 @@ import time
 import pandas as pd 
 
 
-START_DATE = pd.Timestamp("2016-01-01")
-END_DATE = pd.Timestamp("2023-03-31")
+from src.apis.openmeteo_api import (
+    build_historical_client,
+)
+
+
+START_DATE = pd.Timestamp("2015-12-31")
+END_DATE = pd.Timestamp("2023-04-01")
 
 RAW_DIR = Path("data/raw")
 OUTPUT_PATH = RAW_DIR / "mi_hourly_2016_2023_raw.csv"
 
+ARCHIVE_API_URL = "https://archive-api.open-meteo.com/v1/archive"
+
+openmeteo = build_historical_client()
 
 LOCATIONS = [
     {"city": "Detroit", "latitude": 42.3314, "longitude": -83.0458},
@@ -55,5 +63,54 @@ HOURLY_VARIABLES = [
     "wind_direction_10m",
 ]
 
+params = {
+    "latitude": 42.3314,
+    "longitude": -83.0458,
+    "start_date": "2016-01-01",
+    "end_date": "2016-01-01",
+    "hourly": HOURLY_VARIABLES,
+    "temperature_unit": "fahrenheit",
+    "wind_speed_unit": "mph",
+    "precipitation_unit": "inch",
+    "timezone": "GMT",
+    "models": "era5",
+}
 
+responses = openmeteo.weather_api(ARCHIVE_API_URL, params=params)
 
+response = responses[0]
+
+print(type(response))
+
+print([
+    name for name in dir(response)
+    if not name.startswith("_")
+])
+
+hourly = response.Hourly()
+
+print(type(hourly))
+
+print([
+    name for name in dir(hourly)
+    if not name.startswith("_")
+])
+
+response = responses[0]
+hourly = response.Hourly()
+
+temperature = hourly.Variables(0).ValuesAsNumpy()
+
+timestamps = pd.date_range(
+    start=pd.to_datetime(hourly.Time(), unit="s", utc=True),
+    end=pd.to_datetime(hourly.TimeEnd(), unit="s", utc=True),
+    freq=pd.Timedelta(seconds=hourly.Interval()),
+    inclusive="left"
+)
+
+df = pd.DataFrame({
+    "time": timestamps,
+    "temperature_2m": temperature
+})
+
+print(df)

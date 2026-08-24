@@ -6,7 +6,7 @@ import openmeteo_requests
 import requests_cache
 from retry_requests import retry
 
-ARCHIVE_API_URL = "https://archive-api.open-meteo.com/v1/archive"
+
 FORECAST_API_URL = "https://api.open-meteo.com/v1/forecast"
 
 CACHE_PATH = Path(".cache") / "openmeteo"
