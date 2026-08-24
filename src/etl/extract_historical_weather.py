@@ -3,20 +3,15 @@
 from pathlib import Path
 import time
 
-import openmeteo_requests
+
 import pandas as pd 
 
-
-API_URL = "https://archive-api.open-meteo.com/v1/archive"
 
 START_DATE = pd.Timestamp("2016-01-01")
 END_DATE = pd.Timestamp("2023-03-31")
 
 RAW_DIR = Path("data/raw")
 OUTPUT_PATH = RAW_DIR / "mi_hourly_2016_2023_raw.csv"
-
-
-openmeteo = openmeteo_requests.Client()
 
 
 LOCATIONS = [
