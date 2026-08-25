@@ -12,7 +12,8 @@ def download_accident_data():
     try:
         RAW_DIR.mkdir(parents=True, exist_ok=True)
     except OSError as e:
-        print("Error:",e)
+        print(f"Error creating weather data directory: {e}")
+        raise
 
     download_path = kagglehub.dataset_download(
         DATASET_HANDLE,

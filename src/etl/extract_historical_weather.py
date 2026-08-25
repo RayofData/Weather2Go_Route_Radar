@@ -17,34 +17,55 @@ END_DATE = pd.Timestamp("2023-04-01")
 WEATHER_RAW_DIR  = Path("data/raw/historical_weather")
 
 LOCATIONS = [
-    {"city": "Detroit", "latitude": 42.3314, "longitude": -83.0458},
-    {"city": "Ann Arbor", "latitude": 42.2808, "longitude": -83.7430},
-    {"city": "Lansing", "latitude": 42.7325, "longitude": -84.5555},
-    {"city": "Grand Rapids", "latitude": 42.9634, "longitude": -85.6681},
-    {"city": "Flint", "latitude": 43.0125, "longitude": -83.6875},
-    {"city": "Kalamazoo", "latitude": 42.2917, "longitude": -85.5872},
-    {"city": "Traverse City", "latitude": 44.7631, "longitude": -85.6206},
-    {"city": "Marquette", "latitude": 46.5436, "longitude": -87.3954},
-    {"city": "Sault Ste. Marie", "latitude": 46.4953, "longitude": -84.3453},
-    {"city": "Mount Pleasant", "latitude": 43.5978, "longitude": -84.7675},
-    {"city": "St. Johns", "latitude": 43.0006, "longitude": -84.5590},
-    {"city": "Ionia", "latitude": 42.8722, "longitude": -84.8986},
-    {"city": "Bad Axe", "latitude": 43.8014, "longitude": -83.0008},
-    {"city": "Saginaw", "latitude": 43.4195, "longitude": -83.9508},
-    {"city": "Bay City", "latitude": 43.5945, "longitude": -83.8889},
-    {"city": "Manistee", "latitude": 44.0974, "longitude": -86.2044},
-    {"city": "Grand Haven", "latitude": 43.0631, "longitude": -86.2284},
-    {"city": "Iron Mountain", "latitude": 45.8203, "longitude": -88.0659},
-    {"city": "Charlevoix", "latitude": 45.9731, "longitude": -85.1973},
-    {"city": "Cheboygan", "latitude": 45.7875, "longitude": -84.7272},
-    {"city": "Holland", "latitude": 43.7223, "longitude": -86.1056},
-    {"city": "Big Rapids", "latitude": 43.9553, "longitude": -85.4839},
-    {"city": "Petoskey", "latitude": 45.3733, "longitude": -84.9553},
-    {"city": "Jackson", "latitude": 43.2917, "longitude": -84.4014},
-    {"city": "Gaylord", "latitude": 44.6610, "longitude": -84.7147},
-    {"city": "Ironwood", "latitude": 46.7867, "longitude": -90.1710},
-    {"city": "Escanaba", "latitude": 46.4110, "longitude": -86.6345},
-    {"city": "Mackinaw City", "latitude": 45.0275, "longitude": -84.7278},
+    # Southeast Michigan / high accident representation
+    {"city": "Detroit", "latitude": 42.3834, "longitude": -83.1024},
+    {"city": "Southfield", "latitude": 42.4765, "longitude": -83.2605},
+    {"city": "Dearborn", "latitude": 42.3127, "longitude": -83.2129},
+    {"city": "Warren", "latitude": 42.4934, "longitude": -83.0270},
+    {"city": "Ann Arbor", "latitude": 42.2761, "longitude": -83.7311},
+    {"city": "Jackson", "latitude": 42.2431, "longitude": -84.4040},
+    {"city": "Monroe", "latitude": 41.9155, "longitude": -83.3849},
+    {"city": "Adrian", "latitude": 41.8993, "longitude": -84.0447},
+
+    # Flint / Mid-Michigan / east-central
+    {"city": "Flint", "latitude": 43.0235, "longitude": -83.6922},
+    {"city": "Grand Blanc", "latitude": 42.9258, "longitude": -83.6182},
+    {"city": "Lansing", "latitude": 42.7141, "longitude": -84.5605},
+    {"city": "Mount Pleasant", "latitude": 43.5966, "longitude": -84.7758},
+    {"city": "Saginaw", "latitude": 43.4193, "longitude": -83.9503},
+    {"city": "Bay City", "latitude": 43.5902, "longitude": -83.8886},
+    {"city": "Port Huron", "latitude": 42.9936, "longitude": -82.4339},
+
+    # West / southwest Michigan
+    {"city": "Grand Rapids", "latitude": 42.9619, "longitude": -85.6562},
+    {"city": "Kalamazoo", "latitude": 42.2749, "longitude": -85.5882},
+    {"city": "Battle Creek", "latitude": 42.2985, "longitude": -85.2297},
+    {"city": "Benton Harbor", "latitude": 42.1159, "longitude": -86.4487},
+    {"city": "Holland", "latitude": 42.7674, "longitude": -86.0986},
+    {"city": "Muskegon", "latitude": 43.2281, "longitude": -86.2564},
+    {"city": "Grand Haven", "latitude": 43.0553, "longitude": -86.2201},
+    {"city": "Big Rapids", "latitude": 43.6992, "longitude": -85.4805},
+
+    # Northern Lower Peninsula
+    {"city": "Traverse City", "latitude": 44.7545, "longitude": -85.6037},
+    {"city": "Cadillac", "latitude": 44.2484, "longitude": -85.4094},
+    {"city": "Manistee", "latitude": 44.2453, "longitude": -86.3262},
+    {"city": "Ludington", "latitude": 43.9573, "longitude": -86.4434},
+    {"city": "Alpena", "latitude": 45.0740, "longitude": -83.4399},
+    {"city": "Gaylord", "latitude": 45.0199, "longitude": -84.6811},
+    {"city": "Cheboygan", "latitude": 45.6412, "longitude": -84.4686},
+    {"city": "Petoskey", "latitude": 45.3650, "longitude": -84.9887},
+    {"city": "Mackinaw City", "latitude": 45.7879, "longitude": -84.7484},
+
+    # Upper Peninsula
+    {"city": "Marquette", "latitude": 46.5507, "longitude": -87.3957},
+    {"city": "Sault Ste. Marie", "latitude": 46.4816, "longitude": -84.3727},
+    {"city": "Escanaba", "latitude": 45.7466, "longitude": -87.0830},
+    {"city": "Iron Mountain", "latitude": 45.8275, "longitude": -88.0599},
+    {"city": "Ironwood", "latitude": 46.4522, "longitude": -90.1504},
+    {"city": "Houghton", "latitude": 47.1117, "longitude": -88.5669},
+    {"city": "Menominee", "latitude": 45.1219, "longitude": -87.6232},
+    {"city": "Munising", "latitude": 46.4232, "longitude": -86.6400},
 ]
 
 latitudes = [location["latitude"] for location in LOCATIONS]
@@ -82,10 +103,33 @@ def month_file_is_valid(path, start_date, end_date):
         (end_date - start_date).days + 1
         ) * 24 * len(LOCATIONS)
 
+
+    expected_locations = {
+        (
+            location["city"],
+            round(location["latitude"], 4),
+            round(location["longitude"], 4)
+        )
+        for location in LOCATIONS
+    }
+
+    actual_locations = {
+        (
+            row.city,
+            round(row.latitude, 4),
+            round(row.longitude, 4)
+        )
+        for row in df[["city", "latitude", "longitude"]]
+        .drop_duplicates()
+        .itertuples(index=False)
+    }
+
+
     return (
         not df.empty
         and expected_columns.issubset(df.columns)
         and len(df) == expected_rows
+        and actual_locations == expected_locations
     )
 
 def main():
