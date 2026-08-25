@@ -54,4 +54,3 @@ def get_historical_weather(params):
                 time.sleep(65)
             else:
                 raise
-

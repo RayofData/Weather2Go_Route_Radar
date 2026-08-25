@@ -99,6 +99,10 @@ def month_file_is_valid(path, start_date, end_date):
         *HOURLY_VARIABLES,
     }
 
+    if not expected_columns.issubset(df.columns):
+        return False
+
+
     expected_rows = (
         (end_date - start_date).days + 1
         ) * 24 * len(LOCATIONS)
@@ -113,24 +117,26 @@ def month_file_is_valid(path, start_date, end_date):
         for location in LOCATIONS
     }
 
-    actual_locations = {
-        (
-            row.city,
-            round(row.latitude, 4),
-            round(row.longitude, 4)
-        )
-        for row in df[["city", "latitude", "longitude"]]
-        .drop_duplicates()
-        .itertuples(index=False)
-    }
-
+    try:
+        actual_locations = {
+            (
+                row.city,
+                round(row.latitude, 4),
+                round(row.longitude, 4)
+            )
+            for row in df[["city", "latitude", "longitude"]]
+            .drop_duplicates()
+            .itertuples(index=False)
+        }
+    except KeyError as e:
+        print(f"File exists but doesn't have expected columns: {e}.")
+        return False
 
     return (
-        not df.empty
-        and expected_columns.issubset(df.columns)
-        and len(df) == expected_rows
+        len(df) == expected_rows
         and actual_locations == expected_locations
     )
+
 
 def main():
     try:
