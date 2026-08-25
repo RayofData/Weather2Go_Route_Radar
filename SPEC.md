@@ -16,7 +16,6 @@ A user:
 4. Sees weather details for the start location at departure time.
 5. Sees weather details for the destination at estimated arrival time.
 6. Receives one overall trip risk:
-
    * Low
    * Moderate Risk
    * High Risk
