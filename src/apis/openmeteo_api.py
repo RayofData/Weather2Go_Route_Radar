@@ -7,11 +7,11 @@ import requests_cache
 from retry_requests import retry
 
 
+ARCHIVE_API_URL = "https://archive-api.open-meteo.com/v1/archive"
 FORECAST_API_URL = "https://api.open-meteo.com/v1/forecast"
 
 CACHE_PATH = Path(".cache") / "openmeteo"
 
-openmeteo = openmeteo_requests.Client()
 
 def build_historical_client():
     """Create an Open-Meteo client with caching and retries."""
@@ -27,3 +27,13 @@ def build_historical_client():
     )
 
     return openmeteo_requests.Client(session=retry_session)
+
+    
+
+historical_client = build_historical_client()
+
+def get_historical_weather(params):
+    """Request historical weather data from Open-Meteo."""
+    responses = historical_client.weather_api(ARCHIVE_API_URL, params=params)
+    return responses
+

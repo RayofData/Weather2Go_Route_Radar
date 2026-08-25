@@ -8,7 +8,7 @@ import pandas as pd
 
 
 from src.apis.openmeteo_api import (
-    build_historical_client,
+    get_historical_weather
 )
 
 
@@ -18,9 +18,6 @@ END_DATE = pd.Timestamp("2023-04-01")
 RAW_DIR = Path("data/raw")
 OUTPUT_PATH = RAW_DIR / "mi_hourly_2016_2023_raw.csv"
 
-ARCHIVE_API_URL = "https://archive-api.open-meteo.com/v1/archive"
-
-openmeteo = build_historical_client()
 
 LOCATIONS = [
     {"city": "Detroit", "latitude": 42.3314, "longitude": -83.0458},
@@ -53,6 +50,9 @@ LOCATIONS = [
     {"city": "Mackinaw City", "latitude": 45.0275, "longitude": -84.7278},
 ]
 
+latitudes = [location["latitude"] for location in LOCATIONS]
+longitudes = [location["longitude"] for location in LOCATIONS]
+
 HOURLY_VARIABLES = [
     "temperature_2m",
     "relative_humidity_2m",
@@ -63,9 +63,11 @@ HOURLY_VARIABLES = [
     "wind_direction_10m",
 ]
 
+
+
 params = {
-    "latitude": 42.3314,
-    "longitude": -83.0458,
+    "latitude": latitudes,
+    "longitude": longitudes,
     "start_date": "2016-01-01",
     "end_date": "2016-01-01",
     "hourly": HOURLY_VARIABLES,
@@ -76,41 +78,35 @@ params = {
     "models": "era5",
 }
 
-responses = openmeteo.weather_api(ARCHIVE_API_URL, params=params)
+responses = get_historical_weather(params)
 
-response = responses[0]
+city_dfs = []
 
-print(type(response))
+for location, response in zip(LOCATIONS, responses):
+    hourly = response.Hourly()
 
-print([
-    name for name in dir(response)
-    if not name.startswith("_")
-])
+    weather_columns = {}
 
-hourly = response.Hourly()
+    for i in range(len(HOURLY_VARIABLES)):
+        weather_columns[HOURLY_VARIABLES[i]] = hourly.Variables(i).ValuesAsNumpy()
 
-print(type(hourly))
+    timestamps = pd.date_range(
+        start=pd.to_datetime(hourly.Time(), unit="s", utc=True),
+        end=pd.to_datetime(hourly.TimeEnd(), unit="s", utc=True),
+        freq=pd.Timedelta(seconds=hourly.Interval()),
+        inclusive="left"
+    )
 
-print([
-    name for name in dir(hourly)
-    if not name.startswith("_")
-])
+    city_df = pd.DataFrame(weather_columns)
 
-response = responses[0]
-hourly = response.Hourly()
+    city_df.insert(0, "longitude", location["longitude"])
+    city_df.insert(0, "latitude", location["latitude"])
+    city_df.insert(0, "city", location["city"])
+    city_df.insert(0, "time", timestamps)
 
-temperature = hourly.Variables(0).ValuesAsNumpy()
+    city_dfs.append(city_df)
 
-timestamps = pd.date_range(
-    start=pd.to_datetime(hourly.Time(), unit="s", utc=True),
-    end=pd.to_datetime(hourly.TimeEnd(), unit="s", utc=True),
-    freq=pd.Timedelta(seconds=hourly.Interval()),
-    inclusive="left"
-)
-
-df = pd.DataFrame({
-    "time": timestamps,
-    "temperature_2m": temperature
-})
+df = pd.concat(city_dfs, ignore_index=True)
 
 print(df)
+print(df.shape)
