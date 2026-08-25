@@ -16,10 +16,10 @@ A user:
 4. Sees weather details for the start location at departure time.
 5. Sees weather details for the destination at estimated arrival time.
 6. Receives one overall trip risk:
-
    * Low
-   * Medium
-   * High
+   * Moderate Risk
+   * High Risk
+   * Severe Risk
 7. Receives safety guidance appropriate to the predicted risk level.
 
 Both locations must be in Michigan.
@@ -28,11 +28,18 @@ Both locations must be in Michigan.
 
 The model estimates **weather-related driving risk**. It does not predict whether a crash will occur.
 
-The model produces separate risk classifications for the start and destination weather conditions.
+The model produces separate risk scores for the start and destination weather conditions.
 
-The displayed overall trip risk is the worse of the two:
+Each score is converted to a risk level using these thresholds:
 
-`Low < Medium < High`
+* **Low:** 0% to <20%
+* **Moderate Risk:** 20% to <40%
+* **High Risk:** 40% to <60%
+* **Severe Risk:** 60% to 100%
+
+The displayed overall trip risk is the worse of the two risk levels:
+
+`Low < Moderate Risk < High Risk < Severe Risk`
 
 Only the overall trip risk is displayed to the user.
 
@@ -80,13 +87,14 @@ Invalid data should fail clearly rather than silently continuing through the pip
 
 ## Modeling
 
-The MVP is a three-level classification problem:
+The MVP converts model output probabilities into four risk levels:
 
 * Low
-* Medium
-* High
+* Moderate Risk
+* High Risk
+* Severe Risk
 
-Risk categories are derived from model output probabilities using defined thresholds.
+Risk levels are derived from model output probabilities using the thresholds defined in the Risk Definition section.
 
 Model development must include:
 
@@ -96,11 +104,11 @@ Model development must include:
 * a held-out test set used only for final evaluation
 * fixed random seeds where applicable
 
-The primary evaluation priority is **recall for High-risk conditions**, since failing to identify higher-risk weather is considered more important than maximizing overall accuracy.
+The primary evaluation priority is **recall for Severe Risk conditions**, since failing to identify highest-risk weather is considered more important than maximizing overall accuracy.
 
 Additional evaluation metrics may be used to understand overall model behavior.
 
-No class-imbalance treatment is required unless the data indicates that it becomes necessary.
+Class balance will be adjusted using a hybrid under-sampling and over-sampling strategy, targeting approximately a 4:1 ratio of non-accident to accident observations in the training data.
 
 The deployed model outputs only the final risk label, not prediction probabilities.
 
@@ -205,7 +213,7 @@ The MVP is intentionally limited to:
 * one destination
 * one route
 * start and destination weather
-* one overall Low / Medium / High weather-related driving-risk classification
+* one overall Low / Moderate Risk / High Risk / Severe Risk weather-related driving-risk classification
 * basic safety guidance
 * Streamlit deployment
 

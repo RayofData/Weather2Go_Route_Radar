@@ -1,0 +1,5 @@
+pandas
+openmeteo_requests
+requests_cache
+retry_requests
+kagglehub
