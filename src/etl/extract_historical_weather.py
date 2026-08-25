@@ -1,7 +1,6 @@
 """Download historical Michigan weather data from Open-Meteo."""
 
 from pathlib import Path
-import time
 
 
 import pandas as pd 
@@ -15,9 +14,7 @@ from src.apis.openmeteo_api import (
 START_DATE = pd.Timestamp("2015-12-31")
 END_DATE = pd.Timestamp("2023-04-01")
 
-RAW_DIR = Path("data/raw")
-OUTPUT_PATH = RAW_DIR / "mi_hourly_2016_2023_raw.csv"
-
+WEATHER_RAW_DIR  = Path("data/raw/historical_weather")
 
 LOCATIONS = [
     {"city": "Detroit", "latitude": 42.3314, "longitude": -83.0458},
@@ -63,50 +60,118 @@ HOURLY_VARIABLES = [
     "wind_direction_10m",
 ]
 
+def month_file_is_valid(path, start_date, end_date):
+    """Check that a monthly weather file appears complete."""
+    if not path.exists():
+        return False
 
+    try:
+        df = pd.read_csv(path)
+    except (OSError, pd.errors.EmptyDataError, pd.errors.ParserError):
+        return False
 
-params = {
-    "latitude": latitudes,
-    "longitude": longitudes,
-    "start_date": "2016-01-01",
-    "end_date": "2016-01-01",
-    "hourly": HOURLY_VARIABLES,
-    "temperature_unit": "fahrenheit",
-    "wind_speed_unit": "mph",
-    "precipitation_unit": "inch",
-    "timezone": "GMT",
-    "models": "era5",
-}
+    expected_columns = {
+        "time",
+        "city",
+        "latitude",
+        "longitude",
+        *HOURLY_VARIABLES,
+    }
 
-responses = get_historical_weather(params)
+    expected_rows = (
+        (end_date - start_date).days + 1
+        ) * 24 * len(LOCATIONS)
 
-city_dfs = []
-
-for location, response in zip(LOCATIONS, responses):
-    hourly = response.Hourly()
-
-    weather_columns = {}
-
-    for i in range(len(HOURLY_VARIABLES)):
-        weather_columns[HOURLY_VARIABLES[i]] = hourly.Variables(i).ValuesAsNumpy()
-
-    timestamps = pd.date_range(
-        start=pd.to_datetime(hourly.Time(), unit="s", utc=True),
-        end=pd.to_datetime(hourly.TimeEnd(), unit="s", utc=True),
-        freq=pd.Timedelta(seconds=hourly.Interval()),
-        inclusive="left"
+    return (
+        not df.empty
+        and expected_columns.issubset(df.columns)
+        and len(df) == expected_rows
     )
 
-    city_df = pd.DataFrame(weather_columns)
+def main():
+    try:
+        WEATHER_RAW_DIR.mkdir(parents=True, exist_ok=True)
+    except OSError as e:
+        print(f"Error creating weather data directory: {e}")
+        raise
 
-    city_df.insert(0, "longitude", location["longitude"])
-    city_df.insert(0, "latitude", location["latitude"])
-    city_df.insert(0, "city", location["city"])
-    city_df.insert(0, "time", timestamps)
 
-    city_dfs.append(city_df)
+    current_start = START_DATE
 
-df = pd.concat(city_dfs, ignore_index=True)
 
-print(df)
-print(df.shape)
+    while current_start <= END_DATE:
+        current_end = min(
+            current_start + pd.offsets.MonthEnd(0),
+            END_DATE
+        )
+
+        filename = (
+            f"mi_hourly_weather_{current_start.strftime('%Y-%m')}.csv"
+        )
+
+        month_path = WEATHER_RAW_DIR / filename
+
+        if month_file_is_valid(month_path, current_start, current_end):
+            print(f"Skipping {filename}: already downloaded")
+            current_start = current_end + pd.Timedelta(days=1)
+            continue
+
+        params = {
+            "latitude": latitudes,
+            "longitude": longitudes,
+            "start_date": current_start.strftime("%Y-%m-%d"),
+            "end_date": current_end.strftime("%Y-%m-%d"),
+            "hourly": HOURLY_VARIABLES,
+            "temperature_unit": "fahrenheit",
+            "wind_speed_unit": "mph",
+            "precipitation_unit": "inch",
+            "timezone": "GMT",
+            "models": "era5",
+        }
+
+        print(f"Requesting {current_start.date()} to {current_end.date()}")
+
+        responses = get_historical_weather(params)
+
+        if len(responses) != len(LOCATIONS):
+            raise ValueError(
+                f"Expected {len(LOCATIONS)} responses, "
+                f"but received {len(responses)}."
+            )
+
+        month_dfs = []
+
+        for location, response in zip(LOCATIONS, responses):
+            hourly = response.Hourly()
+
+            weather_columns = {}
+
+            for i in range(len(HOURLY_VARIABLES)):
+                weather_columns[HOURLY_VARIABLES[i]] = hourly.Variables(i).ValuesAsNumpy()
+
+            timestamps = pd.date_range(
+                start=pd.to_datetime(hourly.Time(), unit="s", utc=True),
+                end=pd.to_datetime(hourly.TimeEnd(), unit="s", utc=True),
+                freq=pd.Timedelta(seconds=hourly.Interval()),
+                inclusive="left"
+            )
+
+            city_df = pd.DataFrame(weather_columns)
+
+            city_df.insert(0, "longitude", location["longitude"])
+            city_df.insert(0, "latitude", location["latitude"])
+            city_df.insert(0, "city", location["city"])
+            city_df.insert(0, "time", timestamps)
+
+            month_dfs.append(city_df)
+
+        month_df = pd.concat(month_dfs, ignore_index=True)
+
+        month_df.to_csv(month_path, index=False)
+
+        print(f"Saved {month_path}")
+
+        current_start = current_end + pd.Timedelta(days=1)
+
+if __name__ == "__main__":
+    main()
