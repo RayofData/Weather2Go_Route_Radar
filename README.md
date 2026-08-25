@@ -9,8 +9,8 @@ Users will:
 * Enter a start location and destination in Michigan
 * View the route on a map
 * Retrieve weather conditions for both locations
-* Receive a **Low, Medium, or High** driving-risk prediction for each location
-* See one overall trip risk based on the higher of the two predictions
+* Receive one overall trip risk based on the higher-risk weather conditions at the start or destination
+* See the result as **Low (0% to <20%), Moderate Risk (20% to <40%), High Risk (40% to <60%), or Severe Risk (60% to 100%)**
 
 ## Project Status
 
